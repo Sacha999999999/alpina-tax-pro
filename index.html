@@ -34,15 +34,10 @@
         <div class="tax-form-group">
             <label>Canton</label>
             <select id="f-canton">
-                <optgroup label="Suisse Romande">
-                    <option value="VD" selected>Vaud (VD)</option><option value="GE">Genève (GE)</option>
-                    <option value="VS">Valais (VS)</option><option value="FR">Fribourg (FR)</option>
-                    <option value="NE">Neuchâtel (NE)</option><option value="JU">Jura (JU)</option>
-                    <option value="BE">Berne (BE)</option>
-                </optgroup>
-                <optgroup label="Autres Cantons">
-                    <option value="ZH">Zurich (ZH)</option><option value="ZG">Zoug (ZG)</option><option value="BS">Bâle-Ville (BS)</option><option value="TI">Tessin (TI)</option>
-                </optgroup>
+                <option value="VD" selected>Vaud (VD)</option><option value="GE">Genève (GE)</option>
+                <option value="VS">Valais (VS)</option><option value="FR">Fribourg (FR)</option>
+                <option value="NE">Neuchâtel (NE)</option><option value="JU">Jura (JU)</option>
+                <option value="BE">Berne (BE)</option>
             </select>
         </div>
     </div>
@@ -50,7 +45,7 @@
     <div class="tax-grid">
         <div class="tax-form-group">
             <label>Code Postal (NPA)</label>
-            <input type="number" id="f-npa" placeholder="Ex: 1800">
+            <input type="number" id="f-npa" placeholder="Ex: 1800" oninput="rechercheNPA()">
         </div>
         <div class="tax-form-group">
             <label>Commune détectée</label>
@@ -63,19 +58,19 @@
             <label>État civil</label>
             <select id="f-statut">
                 <option value="1">Célibataire / Divorcé(e)</option>
-                <option value="2">Marié(e) / Partenariat enregistré</option>
+                <option value="2">Marié(e)</option>
                 <option value="3">Famille monoparentale</option>
             </select>
         </div>
         <div class="checkbox-group">
             <input type="checkbox" id="f-menage">
-            <label for="f-menage" style="margin:0">Enfant(s) faisant ménage commun (Quotient VD)</label>
+            <label for="f-menage" style="margin:0">Enfant(s) faisant ménage commun</label>
         </div>
     </div>
 
     <div class="tax-grid">
-        <div><label>Revenu Imposable ICC (Canton/Commune)</label><input type="number" id="f-rev-cc" value="100000"></div>
-        <div><label>Revenu Imposable IFD (Confédération)</label><input type="number" id="f-rev-fed" value="100000"></div>
+        <div><label>Revenu Imposable ICC</label><input type="number" id="f-rev-cc" value="100000"></div>
+        <div><label>Revenu Imposable IFD</label><input type="number" id="f-rev-fed" value="100000"></div>
     </div>
 
     <div class="tax-grid">
@@ -90,18 +85,26 @@
     <div id="tax-result-area" class="tax-result">
         <h3>Détail Fiscal Professionnel</h3>
         <div class="tax-line">Impôt Fédéral Direct (IFD) : <b id="out-ifd"></b></div>
-        <div class="tax-line">Impôt Cantonal (ICC) : <b id="out-cant"></b></div>
+        <div class="tax-line">Impôt Cantonal : <b id="out-cant"></b></div>
         <div class="tax-line">Impôt Communal : <b id="out-comm"></b></div>
-        <div class="tax-line">Impôt sur la Fortune : <b id="out-fort"></b></div>
         <div class="tax-line tax-total-line">CHARGE FISCALE TOTALE : <b id="out-total"></b></div>
     </div>
 </div>
 
 <script>
+// Dictionnaire pour l'affichage de la commune
+const DB_VILLES = { "1800":"Vevey", "1000":"Lausanne", "1200":"Genève", "1700":"Fribourg", "1950":"Sion" };
+
+function rechercheNPA() {
+    const n = document.getElementById('f-npa').value;
+    document.getElementById('f-ville-nom').value = DB_VILLES[n] || "NPA reconnu...";
+}
+
 async function lancerCalcul() {
     const btn = document.getElementById('btn-submit');
-    btn.innerText = "Calcul officiel en cours...";
+    btn.innerText = "Calcul en cours...";
     
+    // Mapping des champs pour correspondre à l'API de l'ESTV (Confédération)
     const payload = {
         taxYear: parseInt(document.getElementById('f-annee').value),
         canton: document.getElementById('f-canton').value,
@@ -109,7 +112,7 @@ async function lancerCalcul() {
         maritalStatus: parseInt(document.getElementById('f-statut').value),
         income: parseFloat(document.getElementById('f-rev-fed').value),
         wealth: parseFloat(document.getElementById('f-fortune').value) || 0,
-        numberOfChildren: parseInt(document.getElementById('f-enf-full').value) + (parseInt(document.getElementById('f-enf-half').value) * 0.5)
+        numberOfChildren: parseInt(document.getElementById('f-enf-full').value)
     };
 
     try {
@@ -125,14 +128,14 @@ async function lancerCalcul() {
         document.getElementById('out-ifd').innerText = f.format(r.federalTax);
         document.getElementById('out-cant').innerText = f.format(r.cantonTax);
         document.getElementById('out-comm').innerText = f.format(r.municipalityTax);
-        document.getElementById('out-fort').innerText = f.format(r.wealthTaxCantonal + r.wealthTaxMunicipal);
         document.getElementById('out-total').innerText = f.format(r.totalTax);
         
         document.getElementById('tax-result-area').style.display = 'block';
     } catch (e) {
-        alert("Erreur de connexion au serveur fédéral. Vérifiez le NPA.");
+        alert("Erreur: Vérifiez que le NPA est correct.");
     } finally {
         btn.innerText = "Lancer la simulation";
     }
 }
 </script>
+
