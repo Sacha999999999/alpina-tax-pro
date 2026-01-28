@@ -22,7 +22,6 @@
 
 <div class="tax-calc-container">
     <h2>Simulateur Fiscal Alpina Pro</h2>
-    
     <div class="tax-grid">
         <div class="tax-form-group">
             <label>Année fiscale</label>
@@ -41,7 +40,6 @@
             </select>
         </div>
     </div>
-    
     <div class="tax-grid">
         <div class="tax-form-group">
             <label>Code Postal (NPA)</label>
@@ -52,7 +50,6 @@
             <input type="text" id="f-ville-nom" readonly style="background:#f0f7ff; font-weight:bold;">
         </div>
     </div>
-
     <div class="tax-grid">
         <div class="tax-form-group">
             <label>État civil</label>
@@ -67,25 +64,20 @@
             <label for="f-menage" style="margin:0">Enfant(s) faisant ménage commun</label>
         </div>
     </div>
-
     <div class="tax-grid">
         <div><label>Revenu Imposable ICC</label><input type="number" id="f-rev-cc" value="100000"></div>
         <div><label>Revenu Imposable IFD</label><input type="number" id="f-rev-fed" value="100000"></div>
     </div>
-
     <div class="tax-grid">
         <div><label>Nombre d'enfants (Parts 1.0)</label><input type="number" id="f-enf-full" value="0"></div>
         <div><label>Nombre d'enfants (Parts 0.5)</label><input type="number" id="f-enf-half" value="0"></div>
     </div>
-
     <div class="tax-form-group"><label>Fortune Imposable</label><input type="number" id="f-fortune" value="0"></div>
-
     <button class="btn-calc" id="btn-submit" onclick="lancerCalcul()">Lancer la simulation</button>
-
     <div id="tax-result-area" class="tax-result">
         <h3>Détail Fiscal Professionnel</h3>
         <div class="tax-line">Impôt Fédéral Direct (IFD) : <b id="out-ifd"></b></div>
-        <div class="tax-line">Impôt Cantonal (ICC) : <b id="out-cant"></b></div>
+        <div class="tax-line">Impôt Cantonal : <b id="out-cant"></b></div>
         <div class="tax-line">Impôt Communal : <b id="out-comm"></b></div>
         <div class="tax-line tax-total-line">CHARGE FISCALE TOTALE : <b id="out-total"></b></div>
     </div>
@@ -93,16 +85,14 @@
 
 <script>
 const DB_VILLES = { "1800":"Vevey", "1000":"Lausanne", "1200":"Genève", "1700":"Fribourg", "1950":"Sion" };
-
 function rechercheNPA() {
     const n = document.getElementById('f-npa').value;
-    document.getElementById('f-ville-nom').value = DB_VILLES[n] || "Vérification...";
+    document.getElementById('f-ville-nom').value = DB_VILLES[n] || "NPA reconnu...";
 }
 
 async function lancerCalcul() {
     const btn = document.getElementById('btn-submit');
-    btn.innerText = "Connexion AFC...";
-    
+    btn.innerText = "Calcul en cours...";
     const payload = {
         taxYear: parseInt(document.getElementById('f-annee').value),
         canton: document.getElementById('f-canton').value,
@@ -112,27 +102,20 @@ async function lancerCalcul() {
         wealth: parseFloat(document.getElementById('f-fortune').value) || 0,
         numberOfChildren: parseInt(document.getElementById('f-enf-full').value)
     };
-
     try {
         const response = await fetch('/api/tax', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
         const r = await response.json();
         const f = new Intl.NumberFormat('fr-CH', { style: 'currency', currency: 'CHF' });
-
         document.getElementById('out-ifd').innerText = f.format(r.federalTax);
         document.getElementById('out-cant').innerText = f.format(r.cantonTax);
         document.getElementById('out-comm').innerText = f.format(r.municipalityTax);
         document.getElementById('out-total').innerText = f.format(r.totalTax);
-        
         document.getElementById('tax-result-area').style.display = 'block';
-    } catch (e) {
-        alert("Erreur de calcul. NPA non reconnu par la Confédération.");
-    } finally {
-        btn.innerText = "Lancer la simulation";
-    }
+    } catch (e) { alert("Erreur: Vérifiez les données ou le NPA."); }
+    finally { btn.innerText = "Lancer la simulation"; }
 }
 </script>
