@@ -85,26 +85,24 @@
     <div id="tax-result-area" class="tax-result">
         <h3>Détail Fiscal Professionnel</h3>
         <div class="tax-line">Impôt Fédéral Direct (IFD) : <b id="out-ifd"></b></div>
-        <div class="tax-line">Impôt Cantonal : <b id="out-cant"></b></div>
+        <div class="tax-line">Impôt Cantonal (ICC) : <b id="out-cant"></b></div>
         <div class="tax-line">Impôt Communal : <b id="out-comm"></b></div>
         <div class="tax-line tax-total-line">CHARGE FISCALE TOTALE : <b id="out-total"></b></div>
     </div>
 </div>
 
 <script>
-// Dictionnaire pour l'affichage de la commune
 const DB_VILLES = { "1800":"Vevey", "1000":"Lausanne", "1200":"Genève", "1700":"Fribourg", "1950":"Sion" };
 
 function rechercheNPA() {
     const n = document.getElementById('f-npa').value;
-    document.getElementById('f-ville-nom').value = DB_VILLES[n] || "NPA reconnu...";
+    document.getElementById('f-ville-nom').value = DB_VILLES[n] || "Vérification...";
 }
 
 async function lancerCalcul() {
     const btn = document.getElementById('btn-submit');
-    btn.innerText = "Calcul en cours...";
+    btn.innerText = "Connexion AFC...";
     
-    // Mapping des champs pour correspondre à l'API de l'ESTV (Confédération)
     const payload = {
         taxYear: parseInt(document.getElementById('f-annee').value),
         canton: document.getElementById('f-canton').value,
@@ -132,10 +130,9 @@ async function lancerCalcul() {
         
         document.getElementById('tax-result-area').style.display = 'block';
     } catch (e) {
-        alert("Erreur: Vérifiez que le NPA est correct.");
+        alert("Erreur de calcul. NPA non reconnu par la Confédération.");
     } finally {
         btn.innerText = "Lancer la simulation";
     }
 }
 </script>
-
